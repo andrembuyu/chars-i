@@ -13,7 +13,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 // Serve static files from the "dist" directory
-app.use(express.static(path.join(__dirname, 'dist')));
 
 // Set SendGrid API key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY); // Ensure this line is present
