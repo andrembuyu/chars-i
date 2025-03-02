@@ -749,12 +749,92 @@ function calculateScores() {
     return scores;
 }
 
+// Function to view previous results as links
+function viewPreviousResults() {
+    const previousResults = JSON.parse(localStorage.getItem('previousResults')) || [];
+    const modalContent = document.getElementById('previousResultsContent');
+    modalContent.innerHTML = '';
+
+    if (previousResults.length === 0) {
+        modalContent.innerHTML = '<p>No previous results found.</p>';
+    } else {
+        previousResults.forEach((result, index) => {
+            const resultHtml = `
+                <div class="result-link mb-3 p-3 border rounded">
+                    <a href="#" onclick="openResultDetail(${index})" class="text-decoration-none">
+                        <h5>Result ${index + 1} - ${result.date}</h5>
+                        <p>Overall Score: ${result.overallScore}%</p>
+                        <p>Overall Risk Level: ${result.overallLevel.toUpperCase()}</p>
+                    </a>
+                    <button class="btn btn-danger btn-sm mt-2" onclick="deleteResult(${index})">Delete</button>
+                </div>
+            `;
+            modalContent.innerHTML += resultHtml;
+        });
+    }
+
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('previousResultsModal'));
+    modal.show();
+}
+
+// Function to open detailed view of a result
+function openResultDetail(index) {
+    const previousResults = JSON.parse(localStorage.getItem('previousResults')) || [];
+    const result = previousResults[index];
+
+    // Create a detailed view of the result
+    const detailHtml = `
+        <div class="result-detail">
+            <h4>Result ${index + 1} - ${result.date}</h4>
+            <p><strong>Overall Score:</strong> ${result.overallScore}%</p>
+            <p><strong>Overall Risk Level:</strong> ${result.overallLevel.toUpperCase()}</p>
+            <h5>Detailed Scores:</h5>
+            <ul>
+                ${Object.entries(result.scores).map(([category, score]) => `
+                    <li><strong>${category.charAt(0).toUpperCase() + category.slice(1)}:</strong> ${Math.round(score)}%</li>
+                `).join('')}
+            </ul>
+        </div>
+    `;
+
+    // Display the detailed view in the modal
+    document.getElementById('resultDetailContent').innerHTML = detailHtml;
+    const modal = new bootstrap.Modal(document.getElementById('resultDetailModal'));
+    modal.show();
+}
+
+// Function to delete a result
+function deleteResult(index) {
+    const previousResults = JSON.parse(localStorage.getItem('previousResults')) || [];
+    previousResults.splice(index, 1);
+    localStorage.setItem('previousResults', JSON.stringify(previousResults));
+    viewPreviousResults(); // Refresh the modal content
+}
+
+// Function to save results (to be called when the quiz is submitted)
+function saveResults(scores) {
+    const previousResults = JSON.parse(localStorage.getItem('previousResults')) || [];
+    const overallScore = Math.round(scores.overall);
+    const overallLevel = getLevelFromScore(overallScore);
+
+    previousResults.push({
+        date: new Date().toLocaleDateString(),
+        overallScore: overallScore,
+        overallLevel: overallLevel,
+        scores: scores
+    });
+
+    localStorage.setItem('previousResults', JSON.stringify(previousResults));
+}
+
+// Modify the showResults function to save results
 function showResults() {
     const scores = calculateScores();
-    
+    saveResults(scores); // Save the results
+
     document.getElementById('quiz').style.display = 'none';
     document.getElementById('results').style.display = 'block';
-
     const scoresHtml = Object.entries(scores)
         .filter(([category]) => category !== 'overall')
         .map(([category, score]) => {
