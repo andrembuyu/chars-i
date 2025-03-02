@@ -298,96 +298,85 @@
     }
 
     // Form submission handler
-    document.getElementById('signupForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
+   document.getElementById('signupForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
 
-        // Hide any previous error messages
-        hideError();
+    // Hide any previous error messages
+    hideError();
 
-        // Disable submit button and show loading spinner
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = true;
-        document.getElementById('submitText').classList.add('d-none');
-        document.getElementById('loadingSpinner').classList.remove('d-none');
+    // Show loading spinner
+    document.getElementById('submitText').classList.add('d-none');
+    document.getElementById('loadingSpinner').classList.remove('d-none');
 
-        // Basic validation
-        if (!this.checkValidity()) {
-            this.classList.add('was-validated');
-            submitBtn.disabled = false;
-            document.getElementById('submitText').classList.remove('d-none');
-            document.getElementById('loadingSpinner').classList.add('d-none');
-            return;
+    // Basic validation
+    if (!this.checkValidity()) {
+        this.classList.add('was-validated');
+        document.getElementById('submitText').classList.remove('d-none');
+        document.getElementById('loadingSpinner').classList.add('d-none');
+        return;
+    }
+
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (password !== confirmPassword) {
+        showError("Passwords don't match!");
+        document.getElementById('submitText').classList.remove('d-none');
+        document.getElementById('loadingSpinner').classList.add('d-none');
+        return;
+    }
+
+    const age = parseInt(document.getElementById('age').value);
+    if (age < 18) {
+        showError("You must be 18 or older to register!");
+        document.getElementById('submitText').classList.remove('d-none');
+        document.getElementById('loadingSpinner').classList.add('d-none');
+        return;
+    }
+
+    if (!document.getElementById('termsCheck').checked) {
+        showError("You must agree to the Terms of Service and Privacy Policy!");
+        document.getElementById('submitText').classList.remove('d-none');
+        document.getElementById('loadingSpinner').classList.add('d-none');
+        return;
+    }
+
+    // Collect user data
+    const userData = {
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        email: document.getElementById('email').value,
+        age: age,
+        gender: document.getElementById('gender').value,
+        password: password
+    };
+
+    try {
+        // Send data to the backend
+        const response = await fetch('https://backend-xbru.onrender.com/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData),
+        });
+
+        if (response.ok) {
+            alert('Account created successfully!');
+            window.location.href = 'credentials.html'; // Redirect to another page
+        } else {
+            const error = await response.text();
+            showError('Failed to create account: ' + error);
         }
-
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-
-        if (password !== confirmPassword) {
-            showError("Passwords don't match!");
-            submitBtn.disabled = false;
-            document.getElementById('submitText').classList.remove('d-none');
-            document.getElementById('loadingSpinner').classList.add('d-none');
-            return;
-        }
-
-        const age = parseInt(document.getElementById('age').value);
-        if (age < 18) {
-            showError("You must be 18 or older to register!");
-            submitBtn.disabled = false;
-            document.getElementById('submitText').classList.remove('d-none');
-            document.getElementById('loadingSpinner').classList.add('d-none');
-            return;
-        }
-
-        if (!document.getElementById('termsCheck').checked) {
-            showError("You must agree to the Terms of Service and Privacy Policy!");
-            submitBtn.disabled = false;
-            document.getElementById('submitText').classList.remove('d-none');
-            document.getElementById('loadingSpinner').classList.add('d-none');
-            return;
-        }
-
-        // Collect user data
-        const userData = {
-            firstName: document.getElementById('firstName').value,
-            lastName: document.getElementById('lastName').value,
-            email: document.getElementById('email').value,
-            age: age,
-            gender: document.getElementById('gender').value,
-            password: password
-        };
-
-        try {
-            // Save user data to IndexedDB
-            await saveUser(userData);
-
-            // Send data to the backend
-            const response = await fetch('https://backend-xbru.onrender.com/submit', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userData),
-            });
-
-            if (response.ok) {
-                alert('Account created successfully!');
-                window.location.href = 'credentials.html';
-            } else {
-                const error = await response.text();
-                showError('Failed to create account: ' + error);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showError('An error occurred while submitting the form: ' + error.message);
-        } finally {
-            // Re-enable submit button and hide loading spinner
-            submitBtn.disabled = false;
-            document.getElementById('submitText').classList.remove('d-none');
-            document.getElementById('loadingSpinner').classList.add('d-none');
-        }
-    });
-
+    } catch (error) {
+        console.error('Error:', error);
+        showError('An error occurred while submitting the form: ' + error.message);
+    } finally {
+        // Hide loading spinner
+        document.getElementById('submitText').classList.remove('d-none');
+        document.getElementById('loadingSpinner').classList.add('d-none');
+    }
+});
     // Password toggle functionality
     document.getElementById('togglePassword').addEventListener('click', function () {
         const passwordField = document.getElementById('password');
