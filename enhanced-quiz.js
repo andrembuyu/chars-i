@@ -904,6 +904,33 @@ function generatePDF() {
         );
     });
 
+    // Function to save results to localStorage
+function saveResults(scores) {
+    const previousResults = JSON.parse(localStorage.getItem('previousResults')) || [];
+    const overallScore = Math.round(scores.overall);
+    const overallLevel = getLevelFromScore(overallScore);
+
+    previousResults.push({
+        date: new Date().toLocaleDateString(),
+        overallScore: overallScore,
+        overallLevel: overallLevel,
+        scores: scores
+    });
+
+    localStorage.setItem('previousResults', JSON.stringify(previousResults));
+}
+
+// Modify the showResults function to save results
+function showResults() {
+    const scores = calculateScores();
+    saveResults(scores); // Save the results to localStorage
+
+    // Display the results (your existing code)
+    document.getElementById('quiz').style.display = 'none';
+    document.getElementById('results').style.display = 'block';
+
+    // Rest of the showResults function...
+}
     // Define the document definition for pdfmake
     const docDefinition = {
         content: content,
