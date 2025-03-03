@@ -95,6 +95,24 @@
     </div>
 </div>
 
+<!-- Modal for Previous Results -->
+<div class="modal fade" id="previousResultsModal" tabindex="-1" aria-labelledby="previousResultsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previousResultsModalLabel">Previous Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="previousResultsContent">
+                <!-- Previous results will be displayed here as links -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal for Detailed Result View -->
 <div class="modal fade" id="resultDetailModal" tabindex="-1" aria-labelledby="resultDetailModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -455,6 +473,76 @@
                 count += Math.ceil(target / 200); // Adjust the increment speed here
             }, 50);
         });
+
+             // Function to view previous results as links
+    function viewPreviousResults() {
+        const previousResults = JSON.parse(localStorage.getItem('previousResults')) || [];
+        const modalContent = document.getElementById('previousResultsContent');
+        modalContent.innerHTML = '';
+
+        if (previousResults.length === 0) {
+            modalContent.innerHTML = '<p>No previous results found.</p>';
+        } else {
+            previousResults.forEach((result, index) => {
+                const resultHtml = `
+                    <div class="result-link mb-3 p-3 border rounded">
+                        <a href="#" onclick="openResultDetail(${index})" class="text-decoration-none">
+                            <h5>Result ${index + 1} - ${result.date}</h5>
+                            <p>Overall Score: ${result.overallScore}%</p>
+                            <p>Overall Risk Level: ${result.overallLevel.toUpperCase()}</p>
+                        </a>
+                        <button class="btn btn-danger btn-sm mt-2" onclick="deleteResult(${index})">Delete</button>
+                    </div>
+                `;
+                modalContent.innerHTML += resultHtml;
+            });
+        }
+
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('previousResultsModal'));
+        modal.show();
+    }
+
+    // Function to open detailed view of a result
+    function openResultDetail(index) {
+        const previousResults = JSON.parse(localStorage.getItem('previousResults')) || [];
+        const result = previousResults[index];
+
+        // Create a detailed view of the result
+        const detailHtml = `
+            <div class="result-detail">
+                <h4>Result ${index + 1} - ${result.date}</h4>
+                <p><strong>Overall Score:</strong> ${result.overallScore}%</p>
+                <p><strong>Overall Risk Level:</strong> ${result.overallLevel.toUpperCase()}</p>
+                <h5>Detailed Scores:</h5>
+                <ul>
+                    ${Object.entries(result.scores).map(([category, score]) => `
+                        <li><strong>${category.charAt(0).toUpperCase() + category.slice(1)}:</strong> ${Math.round(score)}%</li>
+                    `).join('')}
+                </ul>
+            </div>
+        `;
+
+        // Display the detailed view in the modal
+        document.getElementById('resultDetailContent').innerHTML = detailHtml;
+        const modal = new bootstrap.Modal(document.getElementById('resultDetailModal'));
+        modal.show();
+    }
+
+    // Function to delete a result
+    function deleteResult(index) {
+        const previousResults = JSON.parse(localStorage.getItem('previousResults')) || [];
+        previousResults.splice(index, 1);
+        localStorage.setItem('previousResults', JSON.stringify(previousResults));
+        viewPreviousResults(); // Refresh the modal content
+    }
+
+    // Function to get the risk level from the score
+    function getLevelFromScore(score) {
+        if (score <= 33.3) return 'low';
+        if (score <= 66.6) return 'mid';
+        return 'high';
+    }
     </script>
 </body>
 
