@@ -251,7 +251,7 @@ const questionManager = {
                 options: ["Never", "Rarely", "Occasionally", "Frequently", "Almost Always"]
             },
             {
-                text: "How easy or difficult do you find to go without smoking for as long as a week?",
+                text: "How difficult do you find to go without smoking for as long as a week?",
                 weight: 0.07,
                 options: ["Never", "Rarely", "Occasionally", "Frequently", "Almost Always"]
             },
